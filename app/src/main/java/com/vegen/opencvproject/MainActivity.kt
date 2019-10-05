@@ -31,5 +31,9 @@ class MainActivity : AppCompatActivity() {
         btn1.setOnClickListener {
             ShowResultActivity.start(this, 1)
         }
+
+        btn2.setOnClickListener {
+            ShowResultActivity.start(this, 2)
+        }
     }
 }

@@ -14,6 +14,9 @@ extern "C" {
 JNIEXPORT jint JNICALL
 Java_com_vegen_opencvproject_ResultUtil_toGray(JNIEnv *env, jobject instance, jobject bitmap);
 
+JNIEXPORT jint JNICALL
+Java_com_vegen_opencvproject_ResultUtil_negative(JNIEnv *env, jobject instance, jobject bitmap);
+
 // bitmap 转成 Mat
 void bitmap2Mat(JNIEnv *env, Mat &mat, jobject bitmap);
 // mat 转成 Bitmap
@@ -72,6 +75,58 @@ Java_com_vegen_opencvproject_ResultUtil_toGray(JNIEnv *env, jobject instance, jo
     // 其他通道暂不介绍
 
     AndroidBitmap_unlockPixels(env, bitmap);
+    return 0;
+}
+
+JNIEXPORT jint JNICALL
+Java_com_vegen_opencvproject_ResultUtil_negative(JNIEnv *env, jobject instance, jobject bitmap) {
+    Mat src;
+    bitmap2Mat(env, src, bitmap);
+
+    Mat gary;
+    cvtColor(src, gary, COLOR_BGR2GRAY);
+
+    Mat testMat = src.clone();    // 4 通道
+    //Mat testMat = gary.clone();     // 1 通道
+    // 获取信息
+    int cols = testMat.cols;// 宽
+    int rows = testMat.rows;// 高
+    int channels = testMat.channels();// 1
+    LOGE("cols:%d  rows:%d  channels:%d", cols, rows, channels);
+
+    // Bitmap 里面转的是 4 通道 ， 一个通道就可以代表灰度
+    for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < cols; j++)
+        {
+            if (channels == 3){
+                // 获取像素 at  Vec3b 个参数
+                int b = testMat.at<Vec3b>(i, j)[0];
+                int g = testMat.at<Vec3b>(i, j)[1];
+                int r = testMat.at<Vec3b>(i, j)[2];
+
+                // 修改像素 (底片效果)
+                testMat.at<Vec3b>(i, j)[0] = 255 - b;
+                testMat.at<Vec3b>(i, j)[1] = 255 - g;
+                testMat.at<Vec3b>(i, j)[2] = 255 - r;
+            } else if (channels == 4) {
+                // 获取像素 at  Vec4b 个参数
+                int b = testMat.at<Vec4b>(i, j)[0];
+                int g = testMat.at<Vec4b>(i, j)[1];
+                int r = testMat.at<Vec4b>(i, j)[2];
+                int a = testMat.at<Vec4b>(i, j)[3];
+                // 修改像素 (底片效果)
+                testMat.at<Vec4b>(i, j)[0] = 255 - b;
+                testMat.at<Vec4b>(i, j)[1] = 255 - g;
+                testMat.at<Vec4b>(i, j)[2] = 255 - r;
+            } else if (channels == 1){
+                uchar pixels = testMat.at<uchar>(i, j);
+                testMat.at<uchar>(i, j) = 255 - pixels;
+            }
+        }
+    }
+
+    mat2Bitmap(env, testMat, bitmap);
     return 0;
 }
 

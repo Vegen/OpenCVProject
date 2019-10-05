@@ -38,7 +38,7 @@ class ShowResultActivity : AppCompatActivity() {
         // 复用 Bitmap
         options.inMutable = true
         options.inPreferredConfig = Bitmap.Config.RGB_565
-        resultBitmap = BitmapFactory.decodeResource(resources, R.drawable.timg1)
+        resultBitmap = BitmapFactory.decodeResource(resources, R.drawable.timg1, options)
         showResult()
     }
 
@@ -51,6 +51,10 @@ class ShowResultActivity : AppCompatActivity() {
                 // 转灰度图
                 title = "转灰度图"
                 ResultUtil.toGray(resultBitmap)
+            }
+            2-> {
+                title = "底片效果"
+                ResultUtil.negative(resultBitmap)
             }
             else -> {
                 title = "显示效果的页面"

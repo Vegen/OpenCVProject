@@ -13,9 +13,13 @@ object ResultUtil {
     }
 
     /**
-     * 转灰度
-     * @param bitmap
+     * 转灰度图
      */
     external fun toGray(bitmap: Bitmap): Int
+
+    /**
+     * 底片效果
+     */
+    external fun negative(bitmap: Bitmap): Int
 
 }
