@@ -34,7 +34,10 @@ class ShowResultActivity : AppCompatActivity() {
         originBitmap = BitmapFactory.decodeResource(resources, R.drawable.timg1)
         iv_origin_pic.setImageBitmap(originBitmap)
 
-        var option: BitmapFactory.Options = BitmapFactory.Options()
+        var options: BitmapFactory.Options = BitmapFactory.Options()
+        // 复用 Bitmap
+        options.inMutable = true
+        options.inPreferredConfig = Bitmap.Config.RGB_565
         resultBitmap = BitmapFactory.decodeResource(resources, R.drawable.timg1)
         showResult()
     }
