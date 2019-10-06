@@ -39,5 +39,13 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="色值（饱和度、亮度）调节" />
+
+        <Button
+            android:id="@+id/btn5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="绘制形状和文字" />
+
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

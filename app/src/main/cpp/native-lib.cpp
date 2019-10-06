@@ -24,6 +24,9 @@ Java_com_vegen_opencvproject_ResultUtil_layerOverlay(JNIEnv *env, jobject instan
 JNIEXPORT jint JNICALL
 Java_com_vegen_opencvproject_ResultUtil_chromaChange(JNIEnv *env, jobject instance, jobject bitmap);
 
+JNIEXPORT jint JNICALL
+Java_com_vegen_opencvproject_ResultUtil_sketchpad(JNIEnv *env, jobject instance, jobject bitmap);
+
 // bitmap 转成 Mat
 void bitmap2Mat(JNIEnv *env, Mat &mat, jobject bitmap);
 // mat 转成 Bitmap
@@ -215,6 +218,90 @@ Java_com_vegen_opencvproject_ResultUtil_chromaChange(JNIEnv *env, jobject instan
                 src.at<uchar>(i, j) = saturate_cast<uchar>(pixels * alpha + beta);
             }
         }
+    }
+
+    mat2Bitmap(env, src, bitmap);
+    return 0;
+}
+
+// 绘制形状和文字
+JNIEXPORT jint JNICALL
+Java_com_vegen_opencvproject_ResultUtil_sketchpad(JNIEnv *env, jobject instance, jobject bitmap) {
+    Mat src;
+    bitmap2Mat(env, src, bitmap);
+
+    // 注意：Scalar 四个参数分别对应 B G R A
+
+    // 线 line
+    line(src, Point(0, 0), Point(500, 500), Scalar(0, 0, 255, 255), 20, LINE_8);
+
+    // 矩形 rectangle
+    rectangle(src, Point(500, 500), Point(1000, 1000), Scalar(255, 0, 0, 255), 20, LINE_8);
+
+    // 椭圆 ellipse
+    // 第二个参数是： 椭圆的中心点
+    // 第三个参数是： Size 第一个值是椭圆 x width 的半径 ，第二个 ...
+    ellipse(src, Point(src.cols / 2, src.rows / 2), Size(src.cols / 8, src.rows / 4), 360, 0, 360,
+            Scalar(0, 255, 255, 255), 20);
+
+    // 三角形
+    Point pts[1][4];
+    pts[0][0] = Point(500, 500);
+    pts[0][1] = Point(500, 1000);
+    pts[0][2] = Point(1000, 1000);
+    pts[0][3] = Point(500, 500);
+
+    const Point *ptss[] = {pts[0]};
+    const int npts[] = {4};
+    /*
+     * 填充 fillPoly 多边形
+     Mat& img, const Point** pts,
+                         const int* npts, int ncontours,
+                         const Scalar& color, int lineType = LINE_8, int shift = 0,
+                         Point offset = Point()
+     */
+
+    fillPoly(src, ptss, npts, 1, Scalar(255, 0, 0), 20);
+
+    // 圆 circle
+    circle(src, Point(src.cols / 2, src.rows / 2), src.rows / 4, Scalar(255, 255, 0, 255), 20, LINE_AA);
+
+    // 文字
+    const String text = "Hello World";
+    int fontFace = CV_FONT_BLACK;   // 字体
+    double fontScale = 6;           // 字体缩放比
+    int thickness = 2;              // 画笔厚度
+    int baseline = 0;               // 基线
+    // 获取文字宽度
+    /*
+     const String& text, int fontFace,
+                            double fontScale, int thickness,
+                            CV_OUT int* baseLine
+     */
+    Size textSize = getTextSize(text, fontFace, fontScale, thickness, &baseline);
+    // 文字 putText
+    /*
+     InputOutputArray img, const String& text, Point org,
+                         int fontFace, double fontScale, Scalar color,
+                         int thickness = 1, int lineType = LINE_8,
+                         bool bottomLeftOrigin = false
+     */
+    putText(src, text, Point(src.cols / 2 - textSize.width / 2, 200), fontFace, fontScale, Scalar(255, 255, 255, 255),
+            thickness, LINE_AA);
+
+    // 随机画 srand 画线
+    // opencv 做随机 srand random 效果一样
+    RNG rng(time(NULL));
+
+    // 随机生成十条线
+    for (int i = 0; i < 10; i++) {
+        Point sp;
+        sp.x = rng.uniform(0, src.cols);
+        sp.y = rng.uniform(0, src.rows);
+        Point ep;
+        ep.x = rng.uniform(0, src.cols);
+        ep.y = rng.uniform(0, src.rows);
+        line(src, sp, ep, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255), 255), 4);
     }
 
     mat2Bitmap(env, src, bitmap);

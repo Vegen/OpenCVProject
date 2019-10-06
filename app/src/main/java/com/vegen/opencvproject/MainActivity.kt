@@ -33,6 +33,8 @@ class MainActivity : AppCompatActivity() {
         btnClickListener(btn2, 2)
         btnClickListener(btn3, 3)
         btnClickListener(btn4, 4)
+        btnClickListener(btn5, 5)
+
     }
 
     private fun btnClickListener(button: Button, which: Int) {

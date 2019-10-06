@@ -16,9 +16,9 @@ import kotlinx.android.synthetic.main.activity_show_result.*
 class ShowResultActivity : AppCompatActivity() {
 
     companion object {
-        fun start(context: Context, button: Int) {
+        fun start(context: Context, whichButton: Int) {
             val intent = Intent(context, ShowResultActivity::class.java)
-            intent.putExtra("whichButton", button)
+            intent.putExtra("whichButton", whichButton)
             context.startActivity(intent)
         }
     }
@@ -67,6 +67,10 @@ class ShowResultActivity : AppCompatActivity() {
             4 -> {
                 title = "色值（饱和度、亮度）调节"
                 ResultUtil.chromaChange(resultBitmap)
+            }
+            5 -> {
+                title = "绘制形状和文字"
+                ResultUtil.sketchpad(resultBitmap)
             }
             else -> {
                 title = "显示效果的页面"

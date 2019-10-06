@@ -32,4 +32,8 @@ object ResultUtil {
      */
     external fun chromaChange(bitmap: Bitmap): Int
 
+    /**
+     * 绘制形状和文字
+     */
+    external fun sketchpad(bitmap: Bitmap): Int
 }
