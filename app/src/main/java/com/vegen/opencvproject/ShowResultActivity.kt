@@ -53,17 +53,20 @@ class ShowResultActivity : AppCompatActivity() {
     private fun showResult() {
         when (whichButton) {
             1 -> {
-                // 转灰度图
                 title = "转灰度图"
                 ResultUtil.toGray(resultBitmap)
             }
-            2-> {
+            2 -> {
                 title = "底片效果"
                 ResultUtil.negative(resultBitmap)
             }
-            3-> {
+            3 -> {
                 title = "图层叠加"
                 ResultUtil.layerOverlay(resultBitmap, layerDrawable)
+            }
+            4 -> {
+                title = "色值（饱和度、亮度）调节"
+                ResultUtil.chromaChange(resultBitmap)
             }
             else -> {
                 title = "显示效果的页面"

@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity() {
         btnClickListener(btn1, 1)
         btnClickListener(btn2, 2)
         btnClickListener(btn3, 3)
+        btnClickListener(btn4, 4)
     }
 
     private fun btnClickListener(button: Button, which: Int) {

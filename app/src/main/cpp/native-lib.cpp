@@ -21,6 +21,9 @@ JNIEXPORT jint JNICALL
 Java_com_vegen_opencvproject_ResultUtil_layerOverlay(JNIEnv *env, jobject instance, jobject bitmap,
                                                      jobject layerDrawable);
 
+JNIEXPORT jint JNICALL
+Java_com_vegen_opencvproject_ResultUtil_chromaChange(JNIEnv *env, jobject instance, jobject bitmap);
+
 // bitmap 转成 Mat
 void bitmap2Mat(JNIEnv *env, Mat &mat, jobject bitmap);
 // mat 转成 Bitmap
@@ -160,6 +163,61 @@ Java_com_vegen_opencvproject_ResultUtil_layerOverlay(JNIEnv *env, jobject instan
     addWeighted(imgROI2, 1, logo, 1, 0.0, imgROI2);
 
     mat2Bitmap(env, img, bitmap);
+    return 0;
+}
+
+// 饱和度、对比度、亮度调节
+JNIEXPORT jint JNICALL
+Java_com_vegen_opencvproject_ResultUtil_chromaChange(JNIEnv *env, jobject instance, jobject bitmap) {
+    Mat src;
+    bitmap2Mat(env, src, bitmap);
+
+    int cols = src.cols;// 宽
+    int rows = src.rows;// 高
+    int channels = src.channels();// 通道
+
+    LOGE("chromaChange-->channels=%d", channels);   // 4
+
+    // alpha 饱和度 , 对比度
+    // beta 亮度
+    // F(R) = alpha*R + beta;
+    // F(G) = alpha*G + beta;
+    // F(B) = alpha*B + beta;
+
+    float alpha = 1.2f;
+    float beta = 20;
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+
+            if (channels == 3) {
+                // 获取像素 at  Vec3b 个参数
+                int b = src.at<Vec3b>(i, j)[0];
+                int g = src.at<Vec3b>(i, j)[1];
+                int r = src.at<Vec3b>(i, j)[2];
+
+                src.at<Vec3b>(i, j)[0] = saturate_cast<uchar>(b * alpha + beta);
+                src.at<Vec3b>(i, j)[1] = saturate_cast<uchar>(g * alpha + beta);
+                src.at<Vec3b>(i, j)[2] = saturate_cast<uchar>(r * alpha + beta);
+            } else if (channels == 4) {
+                // 获取像素 at  Vec4b 个参数
+                int b = src.at<Vec4b>(i, j)[0];
+                int g = src.at<Vec4b>(i, j)[1];
+                int r = src.at<Vec4b>(i, j)[2];
+                int a = src.at<Vec4b>(i, j)[3];
+
+                src.at<Vec4b>(i, j)[0] = saturate_cast<uchar>(b * alpha + beta);
+                src.at<Vec4b>(i, j)[1] = saturate_cast<uchar>(g * alpha + beta);
+                src.at<Vec4b>(i, j)[2] = saturate_cast<uchar>(r * alpha + beta);
+                src.at<Vec4b>(i, j)[3] = 255;
+            } else if (channels == 1) {
+                uchar pixels = src.at<uchar>(i, j);
+                src.at<uchar>(i, j) = saturate_cast<uchar>(pixels * alpha + beta);
+            }
+        }
+    }
+
+    mat2Bitmap(env, src, bitmap);
     return 0;
 }
 
