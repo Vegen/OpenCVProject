@@ -17,6 +17,10 @@ Java_com_vegen_opencvproject_ResultUtil_toGray(JNIEnv *env, jobject instance, jo
 JNIEXPORT jint JNICALL
 Java_com_vegen_opencvproject_ResultUtil_negative(JNIEnv *env, jobject instance, jobject bitmap);
 
+JNIEXPORT jint JNICALL
+Java_com_vegen_opencvproject_ResultUtil_layerOverlay(JNIEnv *env, jobject instance, jobject bitmap,
+                                                     jobject layerDrawable);
+
 // bitmap 转成 Mat
 void bitmap2Mat(JNIEnv *env, Mat &mat, jobject bitmap);
 // mat 转成 Bitmap
@@ -78,6 +82,7 @@ Java_com_vegen_opencvproject_ResultUtil_toGray(JNIEnv *env, jobject instance, jo
     return 0;
 }
 
+// 底片效果
 JNIEXPORT jint JNICALL
 Java_com_vegen_opencvproject_ResultUtil_negative(JNIEnv *env, jobject instance, jobject bitmap) {
     Mat src;
@@ -95,11 +100,9 @@ Java_com_vegen_opencvproject_ResultUtil_negative(JNIEnv *env, jobject instance, 
     LOGE("cols:%d  rows:%d  channels:%d", cols, rows, channels);
 
     // Bitmap 里面转的是 4 通道 ， 一个通道就可以代表灰度
-    for (int i = 0; i < rows; i++)
-    {
-        for (int j = 0; j < cols; j++)
-        {
-            if (channels == 3){
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (channels == 3) {
                 // 获取像素 at  Vec3b 个参数
                 int b = testMat.at<Vec3b>(i, j)[0];
                 int g = testMat.at<Vec3b>(i, j)[1];
@@ -119,7 +122,7 @@ Java_com_vegen_opencvproject_ResultUtil_negative(JNIEnv *env, jobject instance, 
                 testMat.at<Vec4b>(i, j)[0] = 255 - b;
                 testMat.at<Vec4b>(i, j)[1] = 255 - g;
                 testMat.at<Vec4b>(i, j)[2] = 255 - r;
-            } else if (channels == 1){
+            } else if (channels == 1) {
                 uchar pixels = testMat.at<uchar>(i, j);
                 testMat.at<uchar>(i, j) = 255 - pixels;
             }
@@ -127,6 +130,36 @@ Java_com_vegen_opencvproject_ResultUtil_negative(JNIEnv *env, jobject instance, 
     }
 
     mat2Bitmap(env, testMat, bitmap);
+    return 0;
+}
+
+// 图层叠加
+JNIEXPORT jint JNICALL
+Java_com_vegen_opencvproject_ResultUtil_layerOverlay(JNIEnv *env, jobject instance, jobject bitmap,
+                                                     jobject layerDrawable) {
+    Mat img;
+    bitmap2Mat(env, img, bitmap);
+
+    Mat logo;
+    bitmap2Mat(env, logo, layerDrawable);
+
+    Mat imgROI1 = img(Rect(0, 0, logo.cols, logo.rows));
+    Mat imgROI2 = img(Rect(img.cols - logo.cols, img.rows - logo.rows, logo.cols, logo.rows));
+    /**
+     * addWeighted 方法必须两张图的大小一样
+     * addWeighted(InputArray src1, double alpha, InputArray src2, double beta, double gamma, OutputArray dst, int dtype=-1);
+     * 第一个参数，InputArray类型的src1，表示需要加权的第一个数组，常常填一个Mat。
+     * 第二个参数，alpha，表示第一个数组的权重
+     * 第三个参数，src2，表示第二个数组，它需要和第一个数组拥有相同的尺寸和通道数。
+     * 第四个参数，beta，表示第二个数组的权重值。
+     * 第五个参数，dst，输出的数组，它和输入的两个数组拥有相同的尺寸和通道数。
+     * 第六个参数，gamma，一个加到权重总和上的标量值。
+     * 第七个参数，dtype，输出阵列的可选深度，有默认值-1。;当两个输入数组具有相同的深度时，这个参数设置为-1（默认值），即等同于src1.depth（）
+     */
+    addWeighted(imgROI1, 1, logo, 1, 0.0, imgROI1);
+    addWeighted(imgROI2, 1, logo, 1, 0.0, imgROI2);
+
+    mat2Bitmap(env, img, bitmap);
     return 0;
 }
 

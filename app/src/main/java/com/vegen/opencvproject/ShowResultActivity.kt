@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_show_result.*
@@ -26,6 +27,8 @@ class ShowResultActivity : AppCompatActivity() {
     private lateinit var originBitmap: Bitmap
     private lateinit var resultBitmap: Bitmap
 
+    private lateinit var layerDrawable: Bitmap
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         whichButton = intent.getIntExtra("whichButton", 0)
@@ -37,8 +40,10 @@ class ShowResultActivity : AppCompatActivity() {
         var options: BitmapFactory.Options = BitmapFactory.Options()
         // 复用 Bitmap
         options.inMutable = true
-        options.inPreferredConfig = Bitmap.Config.RGB_565
         resultBitmap = BitmapFactory.decodeResource(resources, R.drawable.timg1, options)
+
+        layerDrawable = BitmapFactory.decodeResource(resources, R.drawable.ic_layer)
+
         showResult()
     }
 
@@ -55,6 +60,10 @@ class ShowResultActivity : AppCompatActivity() {
             2-> {
                 title = "底片效果"
                 ResultUtil.negative(resultBitmap)
+            }
+            3-> {
+                title = "图层叠加"
+                ResultUtil.layerOverlay(resultBitmap, layerDrawable)
             }
             else -> {
                 title = "显示效果的页面"

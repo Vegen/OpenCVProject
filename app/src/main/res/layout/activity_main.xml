@@ -25,5 +25,12 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="底片效果" />
+
+        <Button
+            android:id="@+id/btn3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="图层叠加" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

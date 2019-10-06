@@ -4,6 +4,7 @@ import android.Manifest
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Button
 import android.widget.Toast
 import com.tbruyelle.rxpermissions2.RxPermissions
 import kotlinx.android.synthetic.main.activity_main.*
@@ -28,12 +29,14 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "欢迎学习 OpenCV", Toast.LENGTH_SHORT).show()
         }
 
-        btn1.setOnClickListener {
-            ShowResultActivity.start(this, 1)
-        }
+        btnClickListener(btn1, 1)
+        btnClickListener(btn2, 2)
+        btnClickListener(btn3, 3)
+    }
 
-        btn2.setOnClickListener {
-            ShowResultActivity.start(this, 2)
+    private fun btnClickListener(button: Button, which: Int) {
+        button.setOnClickListener {
+            ShowResultActivity.start(this, which)
         }
     }
 }
