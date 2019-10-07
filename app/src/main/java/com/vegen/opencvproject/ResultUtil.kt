@@ -36,4 +36,9 @@ object ResultUtil {
      * 绘制形状和文字
      */
     external fun sketchpad(bitmap: Bitmap): Int
+
+    /**
+     * 三种滤波模糊
+     */
+    external fun blur(bitmap: Bitmap): Int
 }

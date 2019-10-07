@@ -6,7 +6,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_show_result.*
 
 /**
@@ -71,6 +75,21 @@ class ShowResultActivity : AppCompatActivity() {
             5 -> {
                 title = "绘制形状和文字"
                 ResultUtil.sketchpad(resultBitmap)
+
+            }
+            6 -> {
+                title = "三种滤波模糊"
+                Toast.makeText(applicationContext, "效果处理中...", Toast.LENGTH_SHORT).show()
+                Observable.just(resultBitmap)
+                    .map {
+                        ResultUtil.blur(resultBitmap)
+                    }
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe {
+                        iv_result_pic.setImageBitmap(resultBitmap)
+                        Toast.makeText(applicationContext, "效果处理完成", Toast.LENGTH_SHORT).show()
+                    }
             }
             else -> {
                 title = "显示效果的页面"

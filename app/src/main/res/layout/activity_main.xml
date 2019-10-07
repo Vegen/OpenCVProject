@@ -47,5 +47,12 @@
             android:layout_marginTop="10dp"
             android:text="绘制形状和文字" />
 
+        <Button
+            android:id="@+id/btn6"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="三种滤波模糊" />
+
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

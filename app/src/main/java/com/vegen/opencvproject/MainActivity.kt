@@ -15,7 +15,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         // 后面例子可能用到的权限
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             RxPermissions(this).request(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 .subscribe {
                     if (it) {
@@ -27,14 +27,16 @@ class MainActivity : AppCompatActivity() {
                 }
         } else {
             Toast.makeText(this, "欢迎学习 OpenCV", Toast.LENGTH_SHORT).show()
-        }
+        }*/
+
+        Toast.makeText(this, "欢迎学习 OpenCV", Toast.LENGTH_SHORT).show()
 
         btnClickListener(btn1, 1)
         btnClickListener(btn2, 2)
         btnClickListener(btn3, 3)
         btnClickListener(btn4, 4)
         btnClickListener(btn5, 5)
-
+        btnClickListener(btn6, 6)
     }
 
     private fun btnClickListener(button: Button, which: Int) {

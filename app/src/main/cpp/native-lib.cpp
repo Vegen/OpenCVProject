@@ -27,6 +27,9 @@ Java_com_vegen_opencvproject_ResultUtil_chromaChange(JNIEnv *env, jobject instan
 JNIEXPORT jint JNICALL
 Java_com_vegen_opencvproject_ResultUtil_sketchpad(JNIEnv *env, jobject instance, jobject bitmap);
 
+JNIEXPORT jint JNICALL
+Java_com_vegen_opencvproject_ResultUtil_blur(JNIEnv *env, jobject instance, jobject bitmap);
+
 // bitmap 转成 Mat
 void bitmap2Mat(JNIEnv *env, Mat &mat, jobject bitmap);
 // mat 转成 Bitmap
@@ -303,6 +306,57 @@ Java_com_vegen_opencvproject_ResultUtil_sketchpad(JNIEnv *env, jobject instance,
         ep.y = rng.uniform(0, src.rows);
         line(src, sp, ep, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255), 255), 4);
     }
+
+    mat2Bitmap(env, src, bitmap);
+    return 0;
+}
+
+// 三种滤波模糊
+JNIEXPORT jint JNICALL
+Java_com_vegen_opencvproject_ResultUtil_blur(JNIEnv *env, jobject instance, jobject bitmap) {
+
+    Mat src;
+    bitmap2Mat(env, src, bitmap);
+
+    // 每横向 1/3 演示一种处理效果，请仔细观察
+
+    /** 均值滤波 **/
+    Size size = Size(29, 29);
+    Mat mat1 = src(Rect(0, 0, src.cols / 3, src.rows));
+    /*
+     blur( InputArray src, OutputArray dst,
+                        Size ksize, Point anchor = Point(-1,-1),
+                        int borderType = BORDER_DEFAULT );
+     第一个参数，InputArray类型的src，输入图像，即源图像，填Mat类的对象即可。该函数对通道是独立处理的，且可以处理任意通道数的图片，但需要注意，待处理的图片深度应该为CV_8U, CV_16U, CV_16S, CV_32F 以及 CV_64F之一。
+     第二个参数，OutputArray类型的dst，即目标图像，需要和源图片有一样的尺寸和类型。比如可以用Mat::Clone，以源图片为模板，来初始化得到如假包换的目标图。
+     第三个参数，Size类型的 ksize，内核的大小。一般这样写Size( w,h )来表示内核的大小( 其中，w 为像素宽度， h为像素高度)。Size（3,3）就表示3x3的核大小，Size（5,5）就表示5x5的核大小
+     第四个参数，Point类型的anchor，表示锚点（即被平滑的那个点），注意他有默认值Point(-1,-1)。如果这个点坐标是负值的话，就表示取核的中心为锚点，所以默认值Point(-1,-1)表示这个锚点在核的中心。
+     第五个参数，int类型的borderType，用于推断图像外部像素的某种边界模式。有默认值BORDER_DEFAULT，我们一般不去管它。
+     */
+    blur(mat1, mat1, size);
+
+    line(src, Point(src.cols / 3, 0), Point(src.cols / 3, src.rows), Scalar(255, 255, 255, 255), 3, LINE_8);
+
+    /** 中值模糊 **/
+    Mat mat2 = src(Rect(src.cols / 3, 0, src.cols / 3, src.rows));
+    medianBlur(mat2, mat2, 31);
+
+    line(src, Point(2 * src.cols / 3, 0), Point(2 * src.cols / 3, src.rows), Scalar(255, 255, 255, 255), 3, LINE_8);
+
+    /** 高斯模糊 **/
+    Mat mat3 = src(Rect(2 * src.cols / 3, 0, src.cols / 3, src.rows));
+    /*
+     GaussianBlur( InputArray src, OutputArray dst, Size ksize,
+                                double sigmaX, double sigmaY = 0,
+                                int borderType = BORDER_DEFAULT );
+     InputArray src: 输入图像，可以是Mat类型，图像深度为CV_8U、CV_16U、CV_16S、CV_32F、CV_64F。
+     OutputArray dst: 输出图像，与输入图像有相同的类型和尺寸。
+     Size ksize: 高斯内核大小，这个尺寸与前面两个滤波kernel尺寸不同，ksize.width和ksize.height可以不相同但是这两个值必须为正奇数，如果这两个值为0，他们的值将由sigma计算。
+     double sigmaX: 高斯核函数在X方向上的标准偏差
+     double sigmaY: 高斯核函数在Y方向上的标准偏差，如果sigmaY是0，则函数会自动将sigmaY的值设置为与sigmaX相同的值，如果sigmaX和sigmaY都是0，这两个值将由ksize.width和ksize.height计算而来。具体可以参考getGaussianKernel()函数查看具体细节。建议将size、sigmaX和sigmaY都指定出来。
+     int borderType=BORDER_DEFAULT: 推断图像外部像素的某种便捷模式，有默认值BORDER_DEFAULT，如果没有特殊需要不用更改，具体可以参考borderInterpolate()函数。
+     */
+    GaussianBlur(mat3, mat3, Size(41, 41), 0, 0);
 
     mat2Bitmap(env, src, bitmap);
     return 0;
