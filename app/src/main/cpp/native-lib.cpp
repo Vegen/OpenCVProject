@@ -3,6 +3,7 @@
 #include <opencv2/opencv.hpp>
 #include <android/bitmap.h>
 #include <android/log.h>
+#include "cv_utils.h"
 
 #define TAG "JNI_TAG"
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,TAG,__VA_ARGS__)
@@ -30,10 +31,6 @@ Java_com_vegen_opencvproject_ResultUtil_sketchpad(JNIEnv *env, jobject instance,
 JNIEXPORT jint JNICALL
 Java_com_vegen_opencvproject_ResultUtil_blur(JNIEnv *env, jobject instance, jobject bitmap);
 
-// bitmap 转成 Mat
-void bitmap2Mat(JNIEnv *env, Mat &mat, jobject bitmap);
-// mat 转成 Bitmap
-void mat2Bitmap(JNIEnv *env, Mat mat, jobject bitmap);
 }
 
 // 转灰度图
@@ -42,10 +39,10 @@ Java_com_vegen_opencvproject_ResultUtil_toGray(JNIEnv *env, jobject instance, jo
     // --------- 第一种方法：使用 api 转灰度图 ---------
     /*
     Mat mat;
-    bitmap2Mat(env, mat, bitmap);
+    cv_utils::bitmap2Mat(env, mat, bitmap);
     Mat gray_mat;
     cvtColor(mat, gray_mat, COLOR_BGRA2GRAY);
-    mat2Bitmap(env, gray_mat, bitmap);
+    cv_utils::mat2Bitmap(env, gray_mat, bitmap);
     */
 
     // --------- 第二种方法：原理层面转灰度图 ---------
@@ -95,7 +92,7 @@ Java_com_vegen_opencvproject_ResultUtil_toGray(JNIEnv *env, jobject instance, jo
 JNIEXPORT jint JNICALL
 Java_com_vegen_opencvproject_ResultUtil_negative(JNIEnv *env, jobject instance, jobject bitmap) {
     Mat src;
-    bitmap2Mat(env, src, bitmap);
+    cv_utils::bitmap2Mat(env, src, bitmap);
 
     Mat gary;
     cvtColor(src, gary, COLOR_BGR2GRAY);
@@ -138,7 +135,7 @@ Java_com_vegen_opencvproject_ResultUtil_negative(JNIEnv *env, jobject instance, 
         }
     }
 
-    mat2Bitmap(env, testMat, bitmap);
+    cv_utils::mat2Bitmap(env, testMat, bitmap);
     return 0;
 }
 
@@ -147,10 +144,10 @@ JNIEXPORT jint JNICALL
 Java_com_vegen_opencvproject_ResultUtil_layerOverlay(JNIEnv *env, jobject instance, jobject bitmap,
                                                      jobject layerDrawable) {
     Mat img;
-    bitmap2Mat(env, img, bitmap);
+    cv_utils::bitmap2Mat(env, img, bitmap);
 
     Mat logo;
-    bitmap2Mat(env, logo, layerDrawable);
+    cv_utils::bitmap2Mat(env, logo, layerDrawable);
 
     Mat imgROI1 = img(Rect(0, 0, logo.cols, logo.rows));
     Mat imgROI2 = img(Rect(img.cols - logo.cols, img.rows - logo.rows, logo.cols, logo.rows));
@@ -168,7 +165,7 @@ Java_com_vegen_opencvproject_ResultUtil_layerOverlay(JNIEnv *env, jobject instan
     addWeighted(imgROI1, 1, logo, 1, 0.0, imgROI1);
     addWeighted(imgROI2, 1, logo, 1, 0.0, imgROI2);
 
-    mat2Bitmap(env, img, bitmap);
+    cv_utils::mat2Bitmap(env, img, bitmap);
     return 0;
 }
 
@@ -176,7 +173,7 @@ Java_com_vegen_opencvproject_ResultUtil_layerOverlay(JNIEnv *env, jobject instan
 JNIEXPORT jint JNICALL
 Java_com_vegen_opencvproject_ResultUtil_chromaChange(JNIEnv *env, jobject instance, jobject bitmap) {
     Mat src;
-    bitmap2Mat(env, src, bitmap);
+    cv_utils::bitmap2Mat(env, src, bitmap);
 
     int cols = src.cols;// 宽
     int rows = src.rows;// 高
@@ -223,7 +220,7 @@ Java_com_vegen_opencvproject_ResultUtil_chromaChange(JNIEnv *env, jobject instan
         }
     }
 
-    mat2Bitmap(env, src, bitmap);
+    cv_utils::mat2Bitmap(env, src, bitmap);
     return 0;
 }
 
@@ -231,7 +228,7 @@ Java_com_vegen_opencvproject_ResultUtil_chromaChange(JNIEnv *env, jobject instan
 JNIEXPORT jint JNICALL
 Java_com_vegen_opencvproject_ResultUtil_sketchpad(JNIEnv *env, jobject instance, jobject bitmap) {
     Mat src;
-    bitmap2Mat(env, src, bitmap);
+    cv_utils::bitmap2Mat(env, src, bitmap);
 
     // 注意：Scalar 四个参数分别对应 B G R A
 
@@ -307,7 +304,7 @@ Java_com_vegen_opencvproject_ResultUtil_sketchpad(JNIEnv *env, jobject instance,
         line(src, sp, ep, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255), 255), 4);
     }
 
-    mat2Bitmap(env, src, bitmap);
+    cv_utils::mat2Bitmap(env, src, bitmap);
     return 0;
 }
 
@@ -316,7 +313,7 @@ JNIEXPORT jint JNICALL
 Java_com_vegen_opencvproject_ResultUtil_blur(JNIEnv *env, jobject instance, jobject bitmap) {
 
     Mat src;
-    bitmap2Mat(env, src, bitmap);
+    cv_utils::bitmap2Mat(env, src, bitmap);
 
     // 每横向 1/3 演示一种处理效果，请仔细观察
 
@@ -358,70 +355,7 @@ Java_com_vegen_opencvproject_ResultUtil_blur(JNIEnv *env, jobject instance, jobj
      */
     GaussianBlur(mat3, mat3, Size(41, 41), 0, 0);
 
-    mat2Bitmap(env, src, bitmap);
+    cv_utils::mat2Bitmap(env, src, bitmap);
     return 0;
 }
 
-JNIEXPORT void bitmap2Mat(JNIEnv *env, Mat &mat, jobject bitmap) {
-    // Mat 里面有个 type ： CV_8UC4 刚好对上我们的 Bitmap 中 ARGB_8888 , CV_8UC2 刚好对象我们的 Bitmap 中 RGB_565
-    // 1. 获取 bitmap 信息
-    AndroidBitmapInfo info;
-    void *pixels;
-    AndroidBitmap_getInfo(env, bitmap, &info);
-
-    // 锁定 Bitmap 画布
-    AndroidBitmap_lockPixels(env, bitmap, &pixels);
-    // 指定 mat 的宽高和type  BGRA
-    mat.create(info.height, info.width, CV_8UC4);
-
-    if (info.format == ANDROID_BITMAP_FORMAT_RGBA_8888) {
-        // 对应的 mat 应该是  CV_8UC4
-        Mat temp(info.height, info.width, CV_8UC4, pixels);
-        // 把数据 temp 复制到 mat 里面
-        temp.copyTo(mat);
-    } else if (info.format == ANDROID_BITMAP_FORMAT_RGB_565) {
-        // 对应的 mat 应该是  CV_8UC2
-        Mat temp(info.height, info.width, CV_8UC2, pixels);
-        // mat 是 CV_8UC4 ，CV_8UC2 -> CV_8UC4
-        cvtColor(temp, mat, COLOR_BGR5652BGRA);
-    }
-    // todo 其他要自己去转
-
-    // 解锁 Bitmap 画布
-    AndroidBitmap_unlockPixels(env, bitmap);
-}
-
-JNIEXPORT void mat2Bitmap(JNIEnv *env, Mat mat, jobject bitmap) {
-    // 1. 获取 bitmap 信息
-    AndroidBitmapInfo info;
-    void *pixels;
-    AndroidBitmap_getInfo(env, bitmap, &info);
-
-    // 锁定 Bitmap 画布
-    AndroidBitmap_lockPixels(env, bitmap, &pixels);
-
-    if (info.format == ANDROID_BITMAP_FORMAT_RGBA_8888) {// C4
-        Mat temp(info.height, info.width, CV_8UC4, pixels);
-        if (mat.type() == CV_8UC4) {
-            mat.copyTo(temp);
-        } else if (mat.type() == CV_8UC2) {
-            cvtColor(mat, temp, COLOR_BGR5652BGRA);
-        } else if (mat.type() == CV_8UC1) {// 灰度 mat
-            cvtColor(mat, temp, COLOR_GRAY2BGRA);
-        }
-    } else if (info.format == ANDROID_BITMAP_FORMAT_RGB_565) {// C2
-        Mat temp(info.height, info.width, CV_8UC2, pixels);
-        if (mat.type() == CV_8UC4) {
-            cvtColor(mat, temp, COLOR_BGRA2BGR565);
-        } else if (mat.type() == CV_8UC2) {
-            mat.copyTo(temp);
-
-        } else if (mat.type() == CV_8UC1) {// 灰度 mat
-            cvtColor(mat, temp, COLOR_GRAY2BGR565);
-        }
-    }
-    // todo 其他要自己去转
-
-    // 解锁 Bitmap 画布
-    AndroidBitmap_unlockPixels(env, bitmap);
-}
